@@ -4,6 +4,7 @@ import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
 import software.amazon.awssdk.services.sqs.model.Message;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
+import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -41,6 +42,20 @@ public class SimpleQueueService {
                 .build();
 
         this.sqsClient.deleteMessage(deleteMessageRequest);
+    }
+
+    public void sendMessage(String message) {
+        try {
+            SendMessageRequest sendMessageRequest = SendMessageRequest.builder()
+                    .queueUrl(this.getQueueUrl())
+                    .messageBody(message)
+                    .build();
+            this.sqsClient.sendMessage(sendMessageRequest);
+            System.out.println("Message sent to SQS queue: " + message);
+        } catch (Exception e) {
+            System.err.println("Failed to send message to SQS: " + e.getMessage());
+            throw new RuntimeException(e);
+        }
     }
 
 

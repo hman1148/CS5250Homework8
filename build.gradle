@@ -1,19 +1,55 @@
 plugins {
     id 'java'
+    id 'application'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
 }
 
 group = 'org.example'
-version = '1.0-SNAPSHOT'
+version = '1.0'
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    testImplementation platform('org.junit:junit-bom:5.10.0')
-    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation platform('org.junit:junit-bom:5.9.1')
+    implementation("software.amazon.awssdk:s3:2.20.0")
+    implementation('software.amazon.awssdk:dynamodb:2.20.23')
+    implementation 'software.amazon.awssdk:sqs:2.20.91'
+    implementation 'com.amazonaws:aws-lambda-java-core:1.2.2'
+    implementation 'com.amazonaws:aws-lambda-java-events:3.11.0'
+    implementation 'software.amazon.awssdk:sqs:2.20.0'
+
+    // AWS SDK (Optional for SQS if needed later)
+    implementation 'info.picocli:picocli:4.7.4'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
+    implementation(platform("org.apache.logging.log4j:log4j-bom:2.20.0"))
+    implementation 'ch.qos.logback:logback-classic:1.2.11'
+
+    // Mockito
+    testImplementation 'org.mockito:mockito-core:5.5.0'
+    testImplementation 'org.mockito:mockito-junit-jupiter:5.5.0'
+
+    // AWS SDK test utilities (for integration tests)
+    testImplementation 'software.amazon.awssdk:aws-core'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.8.1'
 }
 
-test {
-    useJUnitPlatform()
+// Set the main class to org.example.Main
+mainClassName = 'org.example.Main'
+
+// Set the source and target compatibility to Java 8
+tasks.withType(JavaCompile).configureEach {
+    sourceCompatibility = '1.8'
+    targetCompatibility = '1.8'
+}
+
+// Configure the Shadow JAR task
+tasks.shadowJar {
+    archiveClassifier.set('all')
+    manifest {
+        attributes(
+                'Main-Class': mainClassName
+        )
+    }
 }

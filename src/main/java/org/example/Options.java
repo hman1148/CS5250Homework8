@@ -80,6 +80,7 @@ public class Options implements Runnable {
             S3Service s3Service = new S3Service();
             DynamoDBService dynamoDBService = new DynamoDBService();
             SimpleQueueService simpleQueueService = isUseSqs() ? new SimpleQueueService(this.Sqs) : null;
+            WidgetLambdaController widgetLambdaController = new WidgetLambdaController(dynamoDBService, simpleQueueService);
 
             Consumer consumer = new Consumer(s3Service, dynamoDBService, simpleQueueService, this);
             consumer.StartingReceving();

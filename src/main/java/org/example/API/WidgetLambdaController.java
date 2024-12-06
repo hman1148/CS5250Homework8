@@ -12,15 +12,19 @@ import java.util.Map;
 
 public class WidgetLambdaController implements RequestHandler<Map<String, Object>, Map<String, Object>> {
 
-    private WidgetAPIProcessor widgetAPIProcessor;
+    private final WidgetAPIProcessor widgetAPIProcessor;
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final String TABLE_NAME = "widgets";
+    private final String QUEUE_URL = "https://sqs.us-east-1.amazonaws.com/224193139309/cs5250-requests";
 
+    public WidgetLambdaController() {
+        DynamoDBService dynamoDBService = new DynamoDBService();
+        SimpleQueueService simpleQueueService = new SimpleQueueService(this.QUEUE_URL);
+        this.widgetAPIProcessor = new WidgetAPIProcessor(dynamoDBService, simpleQueueService);
+    }
 
     public WidgetLambdaController(DynamoDBService dynamoDBService, SimpleQueueService simpleQueueService) {
         this.widgetAPIProcessor = new WidgetAPIProcessor(dynamoDBService, simpleQueueService);
     }
-
 
     @Override
     public HashMap<String, Object> handleRequest(Map<String, Object> stringObjectMap, Context context) {
@@ -63,8 +67,9 @@ public class WidgetLambdaController implements RequestHandler<Map<String, Object
         try {
             String body = (String) input.get("body");
             Widget widget = this.objectMapper.readValue(body, Widget.class);
+            context.getLogger().log("ENV: " + System.getenv("SQS_QUEUE_URL"));
 
-            if (this.isValidRequest(widget)) {
+            if (!this.isValidRequest(widget)) {
                 return ResponseBuilder.buildResponse(400, "Invalid Widget");
             }
 
@@ -73,7 +78,7 @@ public class WidgetLambdaController implements RequestHandler<Map<String, Object
 
         } catch (Exception e) {
             context.getLogger().log("Error creating widget: " + e.getMessage());
-            return ResponseBuilder.buildResponse(500, "Error creating widget");
+            return ResponseBuilder.buildResponse(500, "Error creating widget: " + e.getMessage());
         }
     }
 
@@ -90,7 +95,7 @@ public class WidgetLambdaController implements RequestHandler<Map<String, Object
             return ResponseBuilder.buildResponse(200, "Widget updated: " + widget.getWidgetId());
         } catch (Exception e) {
             context.getLogger().log("Error updating widget: " + e.getMessage());
-            return ResponseBuilder.buildResponse(500, "Error updating widget");
+            return ResponseBuilder.buildResponse(500, "Error updating widget: " + e.getMessage());
         }
     }
 
@@ -107,7 +112,7 @@ public class WidgetLambdaController implements RequestHandler<Map<String, Object
                 return ResponseBuilder.buildResponse(200, "Widget deleted: " + widget.getWidgetId());
             } catch (Exception e) {
                 context.getLogger().log("Error deleting widget: " + e.getMessage());
-                return ResponseBuilder.buildResponse(500, "Error deleting widget");
+                return ResponseBuilder.buildResponse(500, "Error deleting widget: " + e.getMessage());
             }
         }
 }

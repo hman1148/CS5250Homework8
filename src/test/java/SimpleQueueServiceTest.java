@@ -9,6 +9,7 @@ import software.amazon.awssdk.services.sqs.model.*;
 
 import java.util.Collections;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
